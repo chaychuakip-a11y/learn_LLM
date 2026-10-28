@@ -1,0 +1,32 @@
+{
+  "case_id": "de_nav_002",
+  "oem": "示例车厂B",
+  "language": "de",
+  "runtime": "device",
+  "score_type": "句准",
+  "engine": "local-rdg",
+  "resource_slot": "nav-de-2026.03",
+  "version": "eng_2.0.1",
+  "test_set": "nav_de_dev",
+  "acoustic_dump": {
+    "u1": {
+      "best_path_text": "navigiere nach hotel",
+      "state_ids": [3, 8, 9],
+      "state_map_applied": false
+    }
+  },
+  "lexicon": ["navigiere", "nach", "hause", "hotel"],
+  "utterances": [
+    {"utt_id": "u1", "audio": "u1.wav", "lab": "navigiere nach hause", "rec": "navigiere nach hotel"}
+  ],
+  "pgs_rlt": [
+    {
+      "utt_id": "u1",
+      "branches": [
+        {"name": "patch", "text": "navigiere nach hotel", "score": -8, "winner": true},
+        {"name": "fsa", "text": "navigiere nach hause", "score": -9.5, "winner": false}
+      ]
+    }
+  ],
+  "wfst": {"u1": {"path_complete": true, "missing": [], "slot": "nav"}}
+}

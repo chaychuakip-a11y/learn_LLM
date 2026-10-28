@@ -1,0 +1,13 @@
+# 内网 Linux、且准备动 GPU 时再装。第 0 课只用标准库，不必装这里的包。
+# Qwen3.5 官方微调栈是 ms-swift + transformers 5.2。5.3 有视频训练问题，先钉在 5.2。
+ms-swift>=4.1.0
+transformers>=5.2,<5.3
+peft
+qwen_vl_utils>=0.0.14
+tensorboard
+
+# 下面三个是 Qwen3.5 混合注意力的加速组件。preflight 会检查 import。
+# 编译失败时先看 README「环境装不上」；没有它们时训练会很慢，或者直接报错。
+# flash-linear-attention>=0.4.2
+# causal-conv1d
+# flash-attn==2.8.3

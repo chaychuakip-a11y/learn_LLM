@@ -1,0 +1,26 @@
+{
+  "case_id": "th_poi_001",
+  "oem": "示例车厂A",
+  "language": "th",
+  "runtime": "device",
+  "score_type": "句准",
+  "engine": "local-rdg",
+  "resource_slot": "nav-th-2026.03",
+  "version": "eng_1.4.2",
+  "test_set": "nav_th_dev",
+  "acoustic_dump": null,
+  "lexicon": ["ไป", "เซ็นทรัล", "บ้าน", "เปิด", "เพลง"],
+  "utterances": [
+    {"utt_id": "u1", "audio": "u1.wav", "lab": "ไป เซ็นทรัล", "rec": "ไป เส้น ทาง"}
+  ],
+  "pgs_rlt": [
+    {
+      "utt_id": "u1",
+      "branches": [
+        {"name": "patch", "text": "ไป เส้น ทาง", "score": -12.4, "winner": true},
+        {"name": "base", "text": "ไป บ้าน", "score": -18.1, "winner": false}
+      ]
+    }
+  ],
+  "wfst": {"u1": {"path_complete": false, "missing": ["เซ็นทรัล"], "slot": "poi"}}
+}

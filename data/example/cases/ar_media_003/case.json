@@ -1,0 +1,18 @@
+{
+  "case_id": "ar_media_003",
+  "oem": "示例车厂C",
+  "language": "ar",
+  "runtime": "cloud",
+  "score_type": "句准",
+  "engine": "cloud-rdg",
+  "resource_slot": "music-ar-2026.03",
+  "version": "media_ar_1.1",
+  "test_set": "music_ar_dev",
+  "acoustic_dump": null,
+  "lexicon": ["شغل", "أغنية"],
+  "utterances": [
+    {"utt_id": "u1", "audio": "u1.wav", "lab": "شغل أغنية فيروز", "rec": "شغل أغنية"}
+  ],
+  "pgs_rlt": [],
+  "wfst": {"u1": {"path_complete": false, "missing": ["فيروز"], "slot": "music"}}
+}

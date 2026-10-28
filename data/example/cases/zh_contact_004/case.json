@@ -1,0 +1,27 @@
+{
+  "case_id": "zh_contact_004",
+  "oem": "示例车厂D",
+  "language": "zh",
+  "runtime": "device",
+  "score_type": "槽准",
+  "engine": "local-rdg",
+  "resource_slot": "contact-zh-2026.03",
+  "version": "contact_zh_3.2",
+  "test_set": "contact_zh_dev",
+  "acoustic_dump": null,
+  "lexicon": ["打电话", "给", "李四"],
+  "slots": {"u1": {"person": "张三"}},
+  "utterances": [
+    {"utt_id": "u1", "audio": "u1.wav", "lab": "打电话 给 张三", "rec": "打电话 给"}
+  ],
+  "pgs_rlt": [
+    {
+      "utt_id": "u1",
+      "branches": [
+        {"name": "patch", "text": "打电话 给", "score": -5, "winner": true},
+        {"name": "base", "text": "打电话", "score": -9, "winner": false}
+      ]
+    }
+  ],
+  "wfst": {"u1": {"path_complete": false, "missing": ["张三"], "slot": "person"}}
+}
