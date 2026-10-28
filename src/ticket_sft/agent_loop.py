@@ -9,6 +9,7 @@ import urllib.request
 from pathlib import Path
 
 from ticket_sft.paths import SYSTEM_PROMPT_PATH, USER_PREAMBLE
+from ticket_sft.progress import format_bar
 from ticket_sft.rules import check_conclusion, loads_stdout
 from ticket_sft.sandbox import RunResult, run_code
 from ticket_sft.tools_schema import TOOLS
@@ -49,7 +50,7 @@ def run_server(case_dir: Path, base_url: str, model: str, timeout: float = 8) ->
             print("工具参数里没有字符串 code，模型没有按约定写脚本。")
             print(message)
             return 1
-        print(f"—— 第 {round_index} 次脚本 ——")
+        print(f"{format_bar(round_index, 2)}  第 {round_index} 轮脚本")
         print(code)
         result = run_code(code, case_dir, timeout=timeout)
         last_stdout = result.stdout

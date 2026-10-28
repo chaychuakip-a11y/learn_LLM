@@ -15,12 +15,17 @@ def main() -> int:
   bash scripts/learn.sh
 Windows 上等价于：
   $env:PYTHONPATH = "src"
+  $env:PYTHONUTF8 = "1"
   python -m ticket_sft.selftest
   python -m ticket_sft.build_dataset
+  python -m ticket_sft.debug
+  python -m ticket_sft.debug --id de_nav_002
   python -m ticket_sft.inspect --id zh_contact_004
   python -m ticket_sft.report
 
-然后打开 output/debug/report.html。
+debug 在终端显示进度条、LAB/REC 对齐、分支分数、沙箱耗时和 token 占用。
+然后打开 output/debug/report.html。训练之后：
+  python -m ticket_sft.plot_log --output output/sft_9b
 
 内网 Linux 上，环境装好之后：
   bash scripts/train.sh --dry-run

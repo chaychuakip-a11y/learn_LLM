@@ -30,11 +30,36 @@ $env:PYTHONPATH = "src"
 $env:PYTHONUTF8 = "1"
 python -m ticket_sft.selftest
 python -m ticket_sft.build_dataset
+python -m ticket_sft.debug
+python -m ticket_sft.debug --id de_nav_002
 python -m ticket_sft.inspect --id zh_contact_004
 python -m ticket_sft.report
 ```
 
-然后打开 `output/debug/report.html`。
+这几条命令都会在终端画进度条。`debug` 不打开浏览器，直接打出对齐、分支、沙箱耗时和 token 占用：
+
+```text
+[###############-----] 3/4  de_nav_002  通过  180 ms
+对齐 u1
+    =   navigiere
+    =   nach
+    SUB hause -> hotel
+分支 u1  获胜 patch  标注在候选里  分差 1.5
+声学 u1  best='navigiere nach hotel'  state=[3, 8, 9]  映射未做
+长度 [##############------] 2923/4096 (71%)
+```
+
+`=` 是标注和识别相同的词，`DEL` 是识别丢掉的词，`INS` 是多出来的词，`SUB` 是替换。`*` 标出获胜分支。长度条接近满格时，先缩短问题单。换自己的数据时：
+
+```powershell
+python -m ticket_sft.debug --cases data/my/cases --gold data/my/gold
+```
+
+然后打开 `output/debug/report.html`。训练打出 loss 之后，终端里也能看每一行：
+
+```powershell
+python -m ticket_sft.plot_log --output output/sft_9b
+```
 
 先看 `zh_contact_004`，再看 `th_poi_001`。两条都是最终 REC 错了，原因不同：
 
@@ -155,7 +180,8 @@ bash scripts/train.sh
 | 不知道模型在学哪一段 | `python -m ticket_sft.inspect --id <单号>` |
 | 脚本改完输出变了没有 | `python -m ticket_sft.sandbox` |
 | 训练起不来 | `bash scripts/train.sh --dry-run` |
-| loss 曲线 | TensorBoard，或 `python -m ticket_sft.plot_log` |
+| 对齐、分支、沙箱耗时、token 条 | `python -m ticket_sft.debug` 或 `--id <单号>` |
+| loss 曲线 | TensorBoard，或 `python -m ticket_sft.plot_log`（终端里有文本条） |
 | 训练后模型会不会乱下声学结论 | `python -m ticket_sft.agent_loop --server ...` |
 
 正式训练前把 `LOGGING_STEPS` 从 1 改成 5 或 10。数据变大之后，再把 `DATASET_NUM_PROC` 和 `DATALOADER_NUM_WORKERS` 调高。第一轮保持 1 和 0，报错更好读。`swift` 若说不认识 `group_by_length`，把 `output/debug/train_command.sh` 里那一行删掉，以 `swift sft -h` 为准。

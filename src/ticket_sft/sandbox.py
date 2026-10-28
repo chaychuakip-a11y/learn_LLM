@@ -6,6 +6,7 @@ import argparse
 import os
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -83,13 +84,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--code", required=True, type=Path, help="Python 脚本路径")
     parser.add_argument("--timeout", type=float, default=8)
     args = parser.parse_args(argv)
+    started = time.perf_counter()
     result = run_code(args.code.read_text(encoding="utf-8"), args.case, timeout=args.timeout)
+    elapsed_ms = (time.perf_counter() - started) * 1000
     sys.stdout.write(result.stdout)
     if result.stdout and not result.stdout.endswith("\n"):
         sys.stdout.write("\n")
     if result.stderr:
         print(result.stderr, file=sys.stderr)
-    print(f"[sandbox] ok={result.ok} exit={result.exit_code}", file=sys.stderr)
+    print(
+        f"[sandbox] ok={result.ok} exit={result.exit_code}  {elapsed_ms:.0f} ms  stdout {len(result.stdout)} 字",
+        file=sys.stderr,
+    )
     return 0 if result.ok else 1
 
 

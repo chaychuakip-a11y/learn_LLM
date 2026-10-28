@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 
 from ticket_sft.paths import ROOT
+from ticket_sft.progress import emit, format_bar
 
 EXPLAINS = (
     "底模权重冻结，只训练 LoRA。Qwen3.5-9B 的 bf16 LoRA 大约要 22GB 显存。",
@@ -208,8 +209,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"输出 {config['OUTPUT_DIR']}")
     print(f"max_length {config['MAX_LENGTH']}  epochs {config['NUM_TRAIN_EPOCHS']}  max_steps {config.get('MAX_STEPS') or '（按 epoch）'}")
     print()
-    for module in ("swift", "transformers", "peft", "fla", "causal_conv1d"):
-        print(f"import {module}: {_probe(module)}")
+    modules = ("swift", "transformers", "peft", "fla", "causal_conv1d")
+    for index, module in enumerate(modules, start=1):
+        emit(f"{format_bar(index, len(modules))}  import {module:<16} {_probe(module)}")
     gpus = _gpus()
     if not gpus:
         print("没检测到 nvidia-smi。这台机器可以学流程，正式训练放到有 GPU 的内网 Linux。")

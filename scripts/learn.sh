@@ -3,16 +3,19 @@
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
-echo "==== 自测 ===="
+echo "[####----------------] 1/5  自测"
 "$PY" -m ticket_sft.selftest
 
-echo "==== 生成 jsonl ===="
+echo "[########------------] 2/5  生成 jsonl"
 "$PY" -m ticket_sft.build_dataset
 
-echo "==== 看一条中文联系人单：哪一段要学 ===="
+echo "[############--------] 3/5  终端调试"
+"$PY" -m ticket_sft.debug
+
+echo "[################----] 4/5  看一条中文联系人单：哪一段要学"
 "$PY" -m ticket_sft.inspect --id zh_contact_004
 
-echo "==== 写出报告 ===="
+echo "[####################] 5/5  写出报告"
 "$PY" -m ticket_sft.report
 
 echo

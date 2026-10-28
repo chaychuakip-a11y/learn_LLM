@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -33,21 +34,32 @@ class SampleAudit:
         return not any(item.level == "error" for item in self.findings)
 
 
-def audit_jsonl(path: Path, max_length: int) -> list[SampleAudit]:
+def audit_jsonl(path: Path, max_length: int, on_progress=None) -> list[SampleAudit]:
     if not path.is_file():
-        return [SampleAudit(path.name, [Finding("error", f"找不到 {path}。先运行 build_dataset")])]
+        audit = SampleAudit(path.name, [Finding("error", f"找不到 {path}。先运行 build_dataset")])
+        if on_progress:
+            on_progress(1, 1, audit, 0.0)
+        return [audit]
+    rows = [(line_no, line) for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1) if line.strip()]
+    if not rows:
+        audit = SampleAudit(path.name, [Finding("error", f"{path} 是空的")])
+        if on_progress:
+            on_progress(1, 1, audit, 0.0)
+        return [audit]
     audits = []
-    for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-        if not line.strip():
-            continue
+    total = len(rows)
+    for index, (line_no, line) in enumerate(rows, start=1):
+        started = time.perf_counter()
         try:
             record = json.loads(line)
         except json.JSONDecodeError as exc:
-            audits.append(SampleAudit(f"{path.name}:{line_no}", [Finding("error", f"JSON 损坏: {exc}")]))
-            continue
-        audits.append(audit_record(record, max_length, label=f"{path.name}:{line_no}"))
-    if not audits:
-        audits.append(SampleAudit(path.name, [Finding("error", f"{path} 是空的")]))
+            audit = SampleAudit(f"{path.name}:{line_no}", [Finding("error", f"JSON 损坏: {exc}")])
+        else:
+            audit = audit_record(record, max_length, label=f"{path.name}:{line_no}")
+        elapsed = time.perf_counter() - started
+        audits.append(audit)
+        if on_progress:
+            on_progress(index, total, audit, elapsed)
     return audits
 
 

@@ -10,22 +10,44 @@ from ticket_sft.agent_loop import run_offline
 from ticket_sft.basics import lesson_paths
 from ticket_sft.audit import audit_jsonl, audit_record
 from ticket_sft.build_dataset import build
+from ticket_sft.debug import trace_case
 from ticket_sft.paths import ROOT
-from ticket_sft.plot_log import loss_svg
+from ticket_sft.plot_log import loss_svg, loss_text
 from ticket_sft.preflight import build_swift_args, load_env_file
+from ticket_sft.progress import emit, format_bar, format_meter
 from ticket_sft.report import build_report
 from ticket_sft.sandbox import run_code
 
 
 def main() -> int:
-    _test_command()
-    _test_lessons()
-    _test_svg()
-    _test_sandbox_blocks()
-    rough = _test_dataset_roundtrip()
-    print("selftest ok")
-    print(f"最长样本粗估 {rough} token")
+    stages = [
+        ("进度条", _test_progress),
+        ("swift 命令", _test_command),
+        ("八课", _test_lessons),
+        ("loss 文本图", _test_svg),
+        ("沙箱拦截", _test_sandbox_blocks),
+        ("数据往返", _test_dataset_roundtrip),
+    ]
+    rough = 0
+    total = len(stages)
+    for index, (name, fn) in enumerate(stages, start=1):
+        emit(f"{format_bar(index - 1, total)}  {name}  开始")
+        result = fn()
+        if isinstance(result, int):
+            rough = result
+        emit(f"{format_bar(index, total)}  {name}  通过")
+    emit("selftest ok")
+    emit(f"最长样本粗估 {rough} token")
     return 0
+
+
+def _test_progress() -> None:
+    bar = format_bar(1, 4)
+    if "1/4" not in bar or "#" not in bar or "[----" not in format_bar(0, 4):
+        raise SystemExit(f"进度条不对: {bar}")
+    meter = format_meter(50, 100)
+    if "50%" not in meter:
+        raise SystemExit(f"长度条不对: {meter}")
 
 
 def _test_lessons() -> None:
@@ -58,6 +80,11 @@ def _test_svg() -> None:
     assert "polyline" in svg
     assert "#1d4e89" in svg
     assert loss_svg([], []) == ""
+    text = loss_text([(1, 2.2), (2, 1.4)], [(2, 1.8)])
+    if "1.4000" not in text or "#" not in text:
+        raise SystemExit(f"loss 文本图不对:\n{text}")
+    if loss_text([], []) != "":
+        raise SystemExit("空 loss 应该没有文本图")
 
 
 def _test_sandbox_blocks() -> None:
@@ -128,6 +155,23 @@ def _test_dataset_roundtrip() -> int:
         )
         if not offline.ok or "เซ็นทรัล" not in offline.stdout:
             raise SystemExit(offline.stderr)
+        zh_trace = trace_case(
+            ROOT / "data" / "example" / "cases" / "zh_contact_004",
+            ROOT / "data" / "example" / "gold",
+            4096,
+        )
+        zh_audit = next(audit for audit in audits if audit.case_id == "zh_contact_004")
+        if not zh_trace.ok or zh_trace.rough != zh_audit.rough:
+            raise SystemExit(f"中文调试视图和审计不一致: {zh_trace.rough} vs {zh_audit.rough}\n{zh_trace.text}")
+        if "DEL" not in zh_trace.text or "张三" not in zh_trace.text:
+            raise SystemExit(zh_trace.text)
+        de_trace = trace_case(
+            ROOT / "data" / "example" / "cases" / "de_nav_002",
+            ROOT / "data" / "example" / "gold",
+            4096,
+        )
+        if "1.5" not in de_trace.text or "映射未做" not in de_trace.text:
+            raise SystemExit(de_trace.text)
         return max(audit.rough for audit in audits)
 
 

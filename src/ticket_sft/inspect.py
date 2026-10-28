@@ -7,6 +7,7 @@ import sys
 
 from ticket_sft.audit import SampleAudit, audit_jsonl
 from ticket_sft.paths import ROOT
+from ticket_sft.progress import format_meter
 
 
 def load_audits(max_length: int) -> list[SampleAudit]:
@@ -21,9 +22,10 @@ def load_audits(max_length: int) -> list[SampleAudit]:
     return audits
 
 
-def render(audit: SampleAudit) -> str:
+def render(audit: SampleAudit, max_length: int) -> str:
     lines = [
         f"案例 {audit.case_id}  {'通过' if audit.ok else '失败'}  粗估 {audit.rough} token",
+        f"长度 {format_meter(audit.rough, max_length)}",
         "",
         "模型要预测的部分标成 [要学]，其余是 [上下文]。loss 只落在 [要学] 上。",
         "标准输出是脚本跑出来的事实，不能让模型把它再学一遍。",
@@ -64,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
         known = ", ".join(audit.case_id for audit in audits)
         print(f"没有 {args.id}。现在有：{known}")
         return 1
-    sys_text = render(matched[0])
+    sys_text = render(matched[0], args.max_length)
     sys.stdout.buffer.write(sys_text.encode("utf-8", errors="replace"))
     return 0 if matched[0].ok else 1
 

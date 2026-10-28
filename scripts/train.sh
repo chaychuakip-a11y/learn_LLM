@@ -34,19 +34,23 @@ if [[ "$DRY" == 1 ]]; then
   export DRY_RUN=1
 fi
 
+echo "[#####---------------] 1/4  生成 jsonl"
 "$PY" -m ticket_sft.build_dataset \
   --cases "$DATA_CASES" \
   --gold "$DATA_GOLD" \
   --out "$DATA_OUT" \
   --max-length "$MAX_LENGTH"
+echo "[##########----------] 2/4  检查样本"
 "$PY" -m ticket_sft.check_data \
   "$DATA_OUT/train.jsonl" \
   "$DATA_OUT/val.jsonl" \
   --max-length "$MAX_LENGTH"
+echo "[###############-----] 3/4  训练前检查"
 "$PY" -m ticket_sft.preflight --config "$CONFIG"
 if [[ "$DRY" == 1 ]]; then
-  echo "试运行结束，没有启动 GPU 训练。"
+  echo "[####################] 4/4  试运行结束，没有启动 GPU 训练。"
   exit 0
 fi
+echo "[####################] 4/4  开始训练"
 mkdir -p "$OUTPUT_DIR"
 bash "$ROOT/output/debug/train_command.sh" 2>&1 | tee -a "$OUTPUT_DIR/train.log"

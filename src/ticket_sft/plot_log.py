@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from ticket_sft.paths import ROOT
+from ticket_sft.progress import emit
 
 
 def find_history(output_dir: Path) -> list[dict]:
@@ -96,6 +97,30 @@ def loss_svg(train: list[tuple[int, float]], evals: list[tuple[int, float]]) -> 
 """
 
 
+def loss_text(train: list[tuple[int, float]], evals: list[tuple[int, float]], width: int = 24) -> str:
+    if not train and not evals:
+        return ""
+    by_step: dict[int, dict[str, float]] = {}
+    for step, loss in train:
+        by_step.setdefault(step, {})["loss"] = loss
+    for step, loss in evals:
+        by_step.setdefault(step, {})["eval"] = loss
+    peak = max(value for row in by_step.values() for value in row.values())
+    if peak <= 0:
+        peak = 1
+    lines = ["step    loss      eval"]
+    for step in sorted(by_step):
+        row = by_step[step]
+        loss = row.get("loss")
+        ev = row.get("eval")
+        shown = loss if loss is not None else ev
+        filled = round(width * (shown or 0) / peak)
+        loss_cell = f"{loss:8.4f}" if loss is not None else " " * 8
+        eval_cell = f"{ev:8.4f}" if ev is not None else " " * 8
+        lines.append(f"{step:<6}  {loss_cell}  {eval_cell}  {'#' * filled}")
+    return "\n".join(lines) + "\n"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="从训练日志画出 loss")
     parser.add_argument("--output", type=Path, default=ROOT / "output")
@@ -106,13 +131,15 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     history = find_history(args.output)
     train, evals = split_series(history)
+    text = loss_text(train, evals)
     svg = loss_svg(train, evals)
     if not svg:
-        print("日志里还没有 loss。确认训练已经打出 step，或等第一个 save_steps。")
+        emit("日志里还没有 loss。确认训练已经打出 step，或等第一个 save_steps。")
         return 1
+    emit(text.rstrip())
     args.svg.parent.mkdir(parents=True, exist_ok=True)
     args.svg.write_text(svg, encoding="utf-8")
-    print(f"已写入 {args.svg}  训练点 {len(train)}  验证点 {len(evals)}")
+    emit(f"已写入 {args.svg}  训练点 {len(train)}  验证点 {len(evals)}")
     return 0
 
 

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ticket_sft.audit import audit_jsonl
 from ticket_sft.paths import ROOT
+from ticket_sft.progress import emit, format_bar
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -19,20 +20,27 @@ def main(argv: list[str] | None = None) -> int:
         ROOT / "data" / "processed" / "val.jsonl",
     ]
     audits = []
+
+    def _progress(index: int, total: int, audit, seconds: float) -> None:
+        state = "通过" if audit.ok else "失败"
+        emit(
+            f"{format_bar(index, total)}  {audit.case_id}  {state}  "
+            f"{seconds * 1000:.0f} ms  粗估 {audit.rough} token"
+        )
+
     for path in paths:
-        audits.extend(audit_jsonl(path, args.max_length))
+        emit(f"检查 {path}")
+        audits.extend(audit_jsonl(path, args.max_length, on_progress=_progress))
     errors = 0
     warns = 0
     for audit in audits:
-        state = "通过" if audit.ok else "失败"
-        print(f"[{state}] {audit.case_id}  粗估 {audit.rough} token")
         for item in audit.findings:
-            print(f"  [{item.level}] {item.message}")
+            emit(f"  [{item.level}] {audit.case_id}  {item.message}")
             if item.level == "error":
                 errors += 1
             else:
                 warns += 1
-    print(f"共 {len(audits)} 条，错误 {errors}，提醒 {warns}")
+    emit(f"{format_bar(len(audits), len(audits) or 1)}  共 {len(audits)} 条，错误 {errors}，提醒 {warns}")
     return 1 if errors else 0
 
 
