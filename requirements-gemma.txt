@@ -1,0 +1,10 @@
+# 独立于旧 requirements-train.txt 的 Qwen/ms-swift 路线。
+# 只列依赖，不在本项目交付时安装。成功冒烟后在内网保存实际版本锁。
+# transformers 必须包含 Gemma4UnifiedForConditionalGeneration，旧的 <5.3 约束不适用于此路线。
+torch
+transformers
+peft
+accelerate
+deepspeed
+safetensors
+sentencepiece

@@ -1,7 +1,7 @@
 [project]
 name = "ticket-sft"
-version = "0.1.0"
-description = "Learn-while-training scaffold for multilingual ticket analysis on Qwen3.5"
+version = "0.2.0"
+description = "Step-by-step intranet ASR diagnosis: evidence, distillation, LoRA training and CPU inference"
 requires-python = ">=3.10"
 dependencies = []
 

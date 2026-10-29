@@ -22,6 +22,26 @@ def load_case(case_dir: str | os.PathLike[str] | None = None) -> dict:
     return data
 
 
+def read_evidence(relative_path: str) -> dict:
+    """读取已登记的 UTF-8 dump/log。保留哈希和截断状态，不能把片段当全量。"""
+    from ticket_sft.evidence import sha256, source_path
+    directory = Path(os.environ['CASE_DIR']).resolve()
+    case = load_case(directory)
+    source = next((s for s in case.get('sources', []) if s['path'] == relative_path), None)
+    if source is None:
+        raise ValueError('来源清单没有登记这个文件')
+    path = source_path(directory, relative_path)
+    actual = sha256(path)
+    if actual != source.get('sha256'):
+        raise ValueError('来源文件哈希变化，先重新审核快照')
+    with path.open('rb') as handle:
+        raw = handle.read(24_001)
+    return {'path': relative_path, 'sha256': actual,
+            'text': raw[:24_000].decode('utf-8', errors='replace'),
+            'truncated': len(raw) > 24_000,
+            'note': 'truncated=true 时不能据此确认完整文件缺少目标。'}
+
+
 def align_lab_rec(utterances: list[dict]) -> list[dict]:
     rows = []
     for utterance in utterances:
@@ -111,7 +131,12 @@ def base_evidence(case: dict) -> dict:
         "version": case.get("version"),
         "resource_slot": case.get("resource_slot"),
         "test_set": case.get("test_set"),
-        "dump_present": case.get("acoustic_dump") is not None,
+        "dump_present": bool(case.get("acoustic_dump")),
+        "evidence_scope": {
+            "lexicon_complete": case.get("lexicon_complete", False),
+            "branch_evidence": "provided" if case.get("pgs_rlt") else "not_provided",
+            "note": "词表默认是提供的片段；缺少分支/dump不等于查过无问题。",
+        },
         "align": align_lab_rec(case["utterances"]),
         "lexicon_miss": lexicon_check(case["utterances"], case["lexicon"]),
         "branches": branch_table(case.get("pgs_rlt") or [], case["utterances"]),

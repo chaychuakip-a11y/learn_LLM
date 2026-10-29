@@ -4,3 +4,13 @@ __pycache__/
 *.pyc
 .venv/
 *.egg-info/
+data/my/
+data/real/
+data/reviewed/
+runs/
+models/
+configs/intranet.json
+.env
+*.safetensors
+*.gguf
+*.bin
