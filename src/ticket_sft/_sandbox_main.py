@@ -33,6 +33,27 @@ def _install_guards() -> None:
 
     real_open = builtins.open
 
+    # pathlib 在某些 Python 版本缓存了底层 open，单改 builtins.open/io.open
+    # 会漏掉 Path.read_text。审计事件在实际系统调用前统一检查这些入口。
+    def audit(event, args):
+        if event == 'open':
+            file, mode, flags = args
+            if isinstance(file, int):
+                return  # 已打开的标准流；子进程不继承业务文件描述符。
+            if any(mark in str(mode or '') for mark in ('w', 'a', 'x', '+')) or (
+                isinstance(flags, int) and flags & (os.O_WRONLY | os.O_RDWR | os.O_APPEND | os.O_CREAT | os.O_TRUNC)
+            ):
+                raise PermissionError('沙箱审计：不允许写文件')
+            if not _allowed(Path(file)):
+                raise PermissionError('沙箱审计：不允许读取案例外文件')
+        if event in {'os.remove', 'os.rename', 'os.mkdir', 'os.rmdir', 'os.chmod',
+                     'os.link', 'os.symlink', 'os.truncate', 'os.system', 'subprocess.Popen'}:
+            raise PermissionError('沙箱审计：不允许修改文件或启动进程')
+        if event.startswith(('socket.', 'ctypes.')):
+            raise PermissionError('沙箱审计：不允许网络或原生代码')
+
+    sys.addaudithook(audit)
+
     def guarded_open(file, mode="r", *args, **kwargs):
         flags = str(mode)
         name = str(file)

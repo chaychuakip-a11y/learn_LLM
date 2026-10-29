@@ -1,0 +1,14 @@
+{
+  "case_id": "ticket_001",
+  "oem": "填写车厂",
+  "language": "填写语言代码",
+  "runtime": "device",
+  "score_type": "句准",
+  "version": "填写实际引擎版本",
+  "resource_slot": "填写实际加载资源版本",
+  "test_set": "填写测试集版本",
+  "lexicon": [],
+  "utterances": [{"utt_id": "u1", "audio": "audio/u1.wav", "lab": "填写原语种标注", "rec": "填写最终REC"}],
+  "pgs_rlt": [], "wfst": {}, "acoustic_dump": null,
+  "notes": "只填已有证据。字段暂缺不等于目标不存在。用snapshot命令生成来源哈希和group_id。"
+}

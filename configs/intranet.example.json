@@ -1,0 +1,25 @@
+{
+  "allowed_hosts": ["REPLACE_INTERNAL_HOST", "127.0.0.1"],
+  "endpoints": {
+    "deepseek": {
+      "base_url": "http://REPLACE_INTERNAL_HOST/v1",
+      "model": "REPLACE_DEEPSEEK_MODEL_ID",
+      "api_key_env": "INTRANET_DEEPSEEK_API_KEY",
+      "protocol": "json", "timeout_s": 180, "max_tokens": 2048,
+      "extra_body": {}
+    },
+    "glm": {
+      "base_url": "http://REPLACE_INTERNAL_HOST/v1",
+      "model": "REPLACE_GLM_MODEL_ID",
+      "api_key_env": "INTRANET_GLM_API_KEY",
+      "protocol": "json", "timeout_s": 180, "max_tokens": 2048,
+      "extra_body": {}
+    },
+    "student": {
+      "base_url": "http://127.0.0.1:8080/v1",
+      "model": "asr-gemma", "api_key_env": null,
+      "protocol": "json", "timeout_s": 600, "max_tokens": 2048,
+      "extra_body": {"chat_template_kwargs": {"enable_thinking": false}}
+    }
+  }
+}
